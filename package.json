@@ -1,10 +1,8 @@
 {
   "name": "dojo-module-wrapper-webpack-plugin",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": "Lukas Steiger | @innerjoin",
   "description": "Convert webpack's AMD output into a valid Dojo Module, invokable by a 'executeBundle()' method",
-  "peerDependencies": {
-  },
   "license": "MIT",
   "repository": {
     "type": "git",

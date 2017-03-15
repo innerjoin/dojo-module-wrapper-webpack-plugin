@@ -1,73 +1,67 @@
 "use strict";
 
-var deps1 = '"dojo/request/xhr"';
-var deps2 = '__WEBPACK_EXTERNAL_MODULE_17__';
-// var moduleName = "com.siemens.bt.jazz.ui.WorkItemBulkMover.bundling.bundle";
-
-// var startStatement = 'define(["dojo/_base/declare", ' + deps1 + '],'
-//                     + 'function(declare, ' + deps2 + ') {'
-//                     + 'return declare("' + moduleName + '", null, {'
-//                     + 'executeBundle: function() {'
-
-var removeBefore = '';
-
-var endStatement = ']);   }   });   });';
-
-var findRegex = /(define\(\[.*\]\,\s?function\(.*\)\s?\{\s?return.*)\(function\([a-z]*\)\s?\{\s?.*/;
-var beforeRegex = /define\(\[(.*)\]\,\s?function\((.*)\)\s?\{\s?return.*(\(function\([a-z]*\)\s?\{)\s?.*/;
-var endRegex = /.*\]\)\}\);;$/;
-
-var ConcatSource;
-try {
-    ConcatSource = require("webpack-core/lib/ConcatSource");
-} catch(e) {
-    ConcatSource = require("webpack-sources").ConcatSource;
-}
+const replacementExpr = /(define\(\[.*\]\,\s?function\(.*\)\s?\{\s?return.*)\(function\([a-z]*\)\s?\{\s?.*/;
+const dependencyExtractorExpr = /define\(\[(.*)\]\,\s?function\((.*)\)\s?\{\s?return.*(\(function\([a-z]*\)\s?\{)\s?.*/;
+const endBracketExpr = /.*\]\)\}\);;$/;
+const postfix = "Scripts.js";
 
 function DojoModuleWrapperPlugin(options) {
     this.options = options || {};
-    this.chunks = this.options.chunks || {};
 }
  
 DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
     compiler.plugin("emit", (compilation, callback) => {
-        let chunkKey = Object.keys(this.chunks);
+        let chunkKey = Object.keys(this.options);
         chunkKey.map((chunk, key) => {
-            let distChunk = this.findAsset(compilation, chunk),
-                beforeContent = this.chunks[chunk].beforeContent || '',
-                afterContent = this.chunks[chunk].afterContent || '',
-                removeBefore = this.chunks[chunk].removeBefore || '',
-                removeAfter = this.chunks[chunk].removeAfter || '';
+            const distChunk = this.findAsset(compilation, chunk);
+            const moduleName = this.options[chunk].moduleName || '';
 
             let source = compilation.assets[distChunk].source();
             
-            var ele = source.match(beforeRegex);
-            var toReplace = source.match(findRegex)[1];
+            const depExtractions = source.match(dependencyExtractorExpr);
+            const toReplace = source.match(replacementExpr)[1];
 
-            var moduleName = "com.siemens.bt.jazz.ui.WorkItemBulkMover.bundling.bundle";
+            const dojoDeclareLoaderStatement = this.generateStartStatement(moduleName, depExtractions[1], depExtractions[2]);
 
-            var startStatement = 'define(["dojo/_base/declare", ' + ele[1] + '],'
-                                + 'function(declare, ' + ele[2] + ') {'
-                                + 'return declare("' + moduleName + '", null, {'
-                                + 'executeBundle: function() {';
-                                //+ 'toreplace is : ---> ' + toReplace + '<----'
+            source = source.replace(toReplace, "");
+            source = source.replace(endBracketExpr, "]);");
 
-            
-            source = source.replace(toReplace, startStatement);
-            source = source.replace(endRegex, endStatement);
-            //source = (removeBefore) ? source.replace(new RegExp('^' + removeBefore), "") : source;
-            //source = (removeAfter) ? source.replace(new RegExp(removeAfter + '$'), "") : source;
+            const newName = distChunk.substring(0, distChunk.indexOf(".js")) + postfix;
 
-            compilation.assets[distChunk].source = () => {
-                return source;
+            compilation.assets[newName] = {
+                source: function() {
+                    return source;
+                },
+                size: function() {
+                    return source.length;
+                }
             };
 
-            compilation.assets[distChunk] = new ConcatSource(beforeContent, compilation.assets[distChunk], afterContent);
+            compilation.assets[distChunk].source = () => {
+                return dojoDeclareLoaderStatement;
+            };
         });
         callback();
     });
-
 };
+
+DojoModuleWrapperPlugin.prototype.generateStartStatement = function(moduleName, dependencies, dependencyVariables) {
+    var windowDeps = "";
+    var deps = dependencyVariables.split(",");
+    for(var i = 0; i < deps.length; i++) {
+        windowDeps += '      window.' + deps[i] + ' = ' + deps[i] + ';\n';
+    }
+
+    return 'define(["dojo/_base/declare", "dojo/request/script", ' + dependencies + '],'
+         + 'function(declare, script, ' + dependencyVariables + ') {  \n'
+         + '  return declare("' + moduleName.replace(/\//g, ".") + '", null, {  \n'
+         + '    executeBundle: function() {\n'
+         + windowDeps + '\n'
+         + '      script.get("./' + moduleName + postFix + '");  \n'
+         + '    }  \n'
+         + '  });  \n'
+         + '});  \n';
+}
 
 DojoModuleWrapperPlugin.prototype.findAsset = function(compilation, chunk) {
     let chunks = compilation.chunks;
