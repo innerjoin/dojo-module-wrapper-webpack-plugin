@@ -1,4 +1,4 @@
-[![npm][npm]][https://www.npmjs.com/package/dojo-module-wrapper-webpack-plugin]
+[![npm][npm]][npm-url]
 
 # dojo-module-wrapper-webpack-plugin
 
@@ -42,3 +42,9 @@ module.exports = {
 };
 ```
 
+
+
+
+
+[npm]: https://img.shields.io/npm/v/i18n-webpack-plugin.svg
+[npm-url]: https://www.npmjs.com/package/dojo-module-wrapper-webpack-plugin
