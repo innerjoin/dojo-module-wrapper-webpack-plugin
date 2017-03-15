@@ -1,19 +1,37 @@
 "use strict";
 
+/**
+ * used to parse the AMD source built by webpack 
+ * Matches the following items:
+ * - $1: extract the dependency list (e.g. "dojo/request/xhr") 
+ * - $2: extract the variables referring to the dependency (e.g. "xhr")
+ */ 
 const replacementExpr = /(define\(\[.*\]\,\s?function\(.*\)\s?\{\s?return.*)\(function\([a-z]*\)\s?\{\s?.*/;
+/**
+ * Matches the entire AMD header (excluding the webpack return statement)
+ * $1: e.g.: define("dojo/request/xhr", function(xhr) {
+ */
 const dependencyExtractorExpr = /define\(\[(.*)\]\,\s?function\((.*)\)\s?\{\s?return.*(\(function\([a-z]*\)\s?\{)\s?.*/;
+/** expression to catch the end of the webpack AMD file */
 const endBracketExpr = /.*\]\)\}\);;$/;
-const postfix = "Scripts.js";
+/** this brackets will be inserted as a replacement for endBracketExpr */
+const endBracketString = "]);";
+/** This suffix will be appended to the name defined in libraryName */
+const fileNameSuffix = "Scripts.js";
 
+/**
+ * DojoModuleWrapperPlugin constructor
+ * @param {*} options list of chunks to be processed. Each chunk must have a fileName specified
+ */
 function DojoModuleWrapperPlugin(options) {
     this.options = options || {};
 }
- 
+
 DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
     compiler.plugin("emit", (compilation, callback) => {
         let chunkKey = Object.keys(this.options);
         chunkKey.map((chunk, key) => {
-            const distChunk = this.findAsset(compilation, chunk);
+            const distChunk = this.findFile(compilation, chunk);
             const moduleName = this.options[chunk].moduleName || '';
 
             let source = compilation.assets[distChunk].source();
@@ -24,9 +42,9 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
             const dojoDeclareLoaderStatement = this.generateStartStatement(moduleName, depExtractions[1], depExtractions[2]);
 
             source = source.replace(toReplace, "");
-            source = source.replace(endBracketExpr, "]);");
+            source = source.replace(endBracketExpr, endBracketString);
 
-            const newName = distChunk.substring(0, distChunk.indexOf(".js")) + postfix;
+            const newName = distChunk.substring(0, distChunk.indexOf(".js")) + fileNameSuffix;
 
             compilation.assets[newName] = {
                 source: function() {
@@ -63,15 +81,15 @@ DojoModuleWrapperPlugin.prototype.generateStartStatement = function(moduleName, 
          + '});  \n';
 }
 
-DojoModuleWrapperPlugin.prototype.findAsset = function(compilation, chunk) {
+DojoModuleWrapperPlugin.prototype.findFile = function(compilation, chunk) {
     let chunks = compilation.chunks;
-    for (let i = 0, len = chunks.length; i < len; i++) {
-        if (chunks[i].name === chunk) {
+    for (let i = 0; i < chunks.length; i++) {
+        if (chunk === chunks[i].name) {
             return chunks[i].files[0];
         }
     }
-
     return null;
 };
 
+// Make plugin visible for webpack
 module.exports = DojoModuleWrapperPlugin;
