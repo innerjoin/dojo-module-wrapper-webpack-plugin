@@ -32,6 +32,7 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
         let chunkKey = Object.keys(this.options);
         chunkKey.map((chunk, key) => {
             const distChunk = this.findFile(compilation, chunk);
+            const baseUrl = this.options[chunk].baseUrl || '';
             const moduleName = this.options[chunk].moduleName || '';
 
             let source = compilation.assets[distChunk].source();
@@ -39,7 +40,7 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
             const depExtractions = source.match(dependencyExtractorExpr);
             const toReplace = source.match(replacementExpr)[1];
 
-            const dojoDeclareLoaderStatement = this.generateStartStatement(moduleName, depExtractions[1], depExtractions[2]);
+            const dojoDeclareLoaderStatement = this.generateStartStatement(moduleName, depExtractions[1], depExtractions[2], baseUrl, fileNameSuffix);
 
             source = source.replace(toReplace, "");
             source = source.replace(endBracketExpr, endBracketString);
@@ -63,7 +64,7 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
     });
 };
 
-DojoModuleWrapperPlugin.prototype.generateStartStatement = function(moduleName, dependencies, dependencyVariables) {
+DojoModuleWrapperPlugin.prototype.generateStartStatement = function(moduleName, dependencies, dependencyVariables, baseUrl, fileNameSuffix) {
     var windowDeps = "";
     var deps = dependencyVariables.split(",");
     for(var i = 0; i < deps.length; i++) {
@@ -75,7 +76,7 @@ DojoModuleWrapperPlugin.prototype.generateStartStatement = function(moduleName, 
          + '  return declare("' + moduleName.replace(/\//g, ".") + '", null, {  \n'
          + '    executeBundle: function() {\n'
          + windowDeps + '\n'
-         + '      script.get("./' + moduleName + postFix + '");  \n'
+         + '      script.get(' + baseUrl + ' + "' + moduleName + fileNameSuffix + '");  \n'
          + '    }  \n'
          + '  });  \n'
          + '});  \n';
