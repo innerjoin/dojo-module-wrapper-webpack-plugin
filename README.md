@@ -1,8 +1,10 @@
+[![npm][npm]][https://www.npmjs.com/package/dojo-module-wrapper-webpack-plugin]
 
+# dojo-module-wrapper-webpack-plugin
 
-## Prerequisites
+## Usage
 This plugin requires a valid webpack configuration. It should contain the following information:
-```
+```javascript
 const DojoModuleWrapperPlugin = require('dojo-module-wrapper-webpack-plugin');
 
 module.exports = {
@@ -19,10 +21,8 @@ module.exports = {
 
     plugins: [
         new DojoModuleWrapperPlugin({
-            chunks: {
-                app: {
-                    removeBefore: 'var installedModules'
-                },
+            app: {
+                moduleName: '<the full name of your bundle>'
             },
         }),
     ],
@@ -41,3 +41,4 @@ module.exports = {
     ],
 };
 ```
+
