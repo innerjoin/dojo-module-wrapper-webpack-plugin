@@ -1,15 +1,15 @@
 "use strict";
 
 /**
+ * Matches the entire AMD header (excluding the webpack return statement)
+ * $1: e.g.: define("dojo/request/xhr", function(xhr) {
+ */
+const replacementExpr = /(define\(\[.*\]\,\s?function\(.*\)\s?\{\s?return.*)\(function\([a-z]*\)\s?\{\s?.*/;
+/**
  * used to parse the AMD source built by webpack 
  * Matches the following items:
  * - $1: extract the dependency list (e.g. "dojo/request/xhr") 
  * - $2: extract the variables referring to the dependency (e.g. "xhr")
- */ 
-const replacementExpr = /(define\(\[.*\]\,\s?function\(.*\)\s?\{\s?return.*)\(function\([a-z]*\)\s?\{\s?.*/;
-/**
- * Matches the entire AMD header (excluding the webpack return statement)
- * $1: e.g.: define("dojo/request/xhr", function(xhr) {
  */
 const dependencyExtractorExpr = /define\(\[(.*)\]\,\s?function\((.*)\)\s?\{\s?return.*(\(function\([a-z]*\)\s?\{)\s?.*/;
 /** expression to catch the end of the webpack AMD file */
@@ -36,29 +36,35 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
             const moduleName = this.options[chunk].moduleName || '';
 
             let source = compilation.assets[distChunk].source();
-            
             const depExtractions = source.match(dependencyExtractorExpr);
-            const toReplace = source.match(replacementExpr)[1];
-
-            const dojoDeclareLoaderStatement = this.generateStartStatement(moduleName, depExtractions[1], depExtractions[2], baseUrl, fileNameSuffix);
-
-            source = source.replace(toReplace, "");
-            source = source.replace(endBracketExpr, endBracketString);
-
-            const newName = distChunk.substring(0, distChunk.indexOf(".js")) + fileNameSuffix;
-
-            compilation.assets[newName] = {
-                source: function() {
-                    return source;
-                },
-                size: function() {
-                    return source.length;
+            
+            if(depExtractions != null) {
+                const toReplace = source.match(replacementExpr);
+                if(toReplace && toReplace.length == 1) {
+                    source = source.replace(toReplace[1], "");
                 }
-            };
 
-            compilation.assets[distChunk].source = () => {
-                return dojoDeclareLoaderStatement;
-            };
+                const dojoDeclareLoaderStatement = this.generateStartStatement(moduleName, depExtractions[1], depExtractions[2], baseUrl, fileNameSuffix);
+
+                source = source.replace(endBracketExpr, endBracketString);
+
+                const newName = distChunk.substring(0, distChunk.indexOf(".js")) + fileNameSuffix;
+
+                compilation.assets[newName] = {
+                    source: function() {
+                        return source;
+                    },
+                    size: function() {
+                        return source.length;
+                    }
+                };
+
+                compilation.assets[distChunk].source = () => {
+                    return dojoDeclareLoaderStatement;
+                };
+            } else {
+                console.log("No change detected. Skipping 'dojo-module-wrapper-webpack-plugin'")
+            }
         });
         callback();
     });
