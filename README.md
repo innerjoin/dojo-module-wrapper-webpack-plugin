@@ -1,7 +1,7 @@
-[![npm][npm]][npm-url]
+[![npm-v][npm-v]][npm-url]
+[![npm-dt][npm-dt]][npm-url]
 
-# Wrap your webpack code to run within a Dojo powered Web App
-## Preface
+# Wrap webpack code to run within a Dojo powered Web App
 In many enterprise and even open source projects, you will likely stumble across an exising application which is based on the [Dojo Toolkit](http://dojotoolkit.org/). While (at the time of writing) the whole Web Development world is talking about Angular, React, Webpack, Babel and all those modern web development tools, framworks and platforms, many developers are confronted with extending mature tools using older (and sometimes) not up-to-date libraries. 
 This plug-in aims to help developers to integrate today's web technologies into mature Dojo based applications, which will allow to modernize your application step-by-step.
 
@@ -63,6 +63,6 @@ Copyright (c) Lukas Steiger. All rights reserved.
 
 Licensed under the [MIT](https://github.com/innerjoin/dojo-module-wrapper-webpack-plugin/blob/master/LICENSE) License.
 
-
-[npm]: https://img.shields.io/npm/v/dojo-module-wrapper-webpack-plugin.svg
+[npm-dt]: https://img.shields.io/npm/dt/dojo-module-wrapper-webpack-plugin.svg
+[npm-v]: https://img.shields.io/npm/v/dojo-module-wrapper-webpack-plugin.svg
 [npm-url]: https://www.npmjs.com/package/dojo-module-wrapper-webpack-plugin
