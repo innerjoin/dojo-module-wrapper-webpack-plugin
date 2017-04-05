@@ -39,16 +39,24 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
             const depExtractions = source.match(dependencyExtractorExpr);
             
             if(depExtractions != null) {
-                const toReplace = source.match(replacementExpr);
-                if(toReplace && toReplace.length == 1) {
-                    source = source.replace(toReplace[1], "");
+                const toReplace = replacementExpr.exec(source);
+                //const toReplace = source.match(replacementExpr);
+                console.log("toReplace Length: ", toReplace.length);
+                if(toReplace && toReplace.length >= 2) {
+                    for(let i = 1; i < toReplace.length; i++) {
+                        if(source.indexOf(toReplace[i] === 0)) {
+                            console.log("toReplace: ", toReplace[i]);
+                            source = source.replace(toReplace[i], "");
+                            source = source.replace(endBracketExpr, endBracketString);
+                        }
+                    }
                 }
-
+                
                 const dojoDeclareLoaderStatement = this.generateStartStatement(moduleName, depExtractions[1], depExtractions[2], baseUrl, fileNameSuffix);
 
-                source = source.replace(endBracketExpr, endBracketString);
-
+                //source = source.replace(toReplace, "");
                 const newName = distChunk.substring(0, distChunk.indexOf(".js")) + fileNameSuffix;
+                console.info("'dojo-module-wrapper-webpack-plugin' finished successfully");
 
                 compilation.assets[newName] = {
                     source: function() {
@@ -63,7 +71,7 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
                     return dojoDeclareLoaderStatement;
                 };
             } else {
-                console.log("No change detected. Skipping 'dojo-module-wrapper-webpack-plugin'")
+                console.info("'dojo-module-wrapper-webpack-plugin' was skipped. No change detected.")
             }
         });
         callback();
@@ -74,7 +82,8 @@ DojoModuleWrapperPlugin.prototype.generateStartStatement = function(moduleName, 
     var windowDeps = "";
     var deps = dependencyVariables.split(",");
     for(var i = 0; i < deps.length; i++) {
-        windowDeps += '      window.' + deps[i] + ' = ' + deps[i] + ';\n';
+        var trimmed = deps[i].trim();
+        windowDeps += '      window.' + trimmed + ' = ' + trimmed + ';\n';
     }
 
     return 'define(["dojo/_base/declare", "dojo/request/script", ' + dependencies + '],'
