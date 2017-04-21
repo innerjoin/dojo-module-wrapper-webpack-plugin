@@ -40,12 +40,9 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
             
             if(depExtractions != null) {
                 const toReplace = replacementExpr.exec(source);
-                //const toReplace = source.match(replacementExpr);
-                console.log("toReplace Length: ", toReplace.length);
                 if(toReplace && toReplace.length >= 2) {
                     for(let i = 1; i < toReplace.length; i++) {
                         if(source.indexOf(toReplace[i] === 0)) {
-                            console.log("toReplace: ", toReplace[i]);
                             source = source.replace(toReplace[i], "");
                             source = source.replace(endBracketExpr, endBracketString);
                         }
@@ -54,9 +51,7 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
                 
                 const dojoDeclareLoaderStatement = this.generateStartStatement(moduleName, depExtractions[1], depExtractions[2], baseUrl, fileNameSuffix);
 
-                //source = source.replace(toReplace, "");
                 const newName = distChunk.substring(0, distChunk.indexOf(".js")) + fileNameSuffix;
-                console.info("'dojo-module-wrapper-webpack-plugin' finished successfully");
 
                 compilation.assets[newName] = {
                     source: function() {
@@ -70,6 +65,8 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
                 compilation.assets[distChunk].source = () => {
                     return dojoDeclareLoaderStatement;
                 };
+                
+                console.info("'dojo-module-wrapper-webpack-plugin' finished successfully");                
             } else {
                 console.info("'dojo-module-wrapper-webpack-plugin' was skipped. No change detected.")
             }
