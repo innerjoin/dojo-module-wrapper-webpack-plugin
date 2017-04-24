@@ -13,7 +13,7 @@ const replacementExpr = /(define\(\[.*\]\,\s?function\(.*\)\s?\{\s?return.*)\(fu
  */
 const dependencyExtractorExpr = /define\(\[(.*)\]\,\s?function\((.*)\)\s?\{\s?return.*(\(function\([a-z]*\)\s?\{)\s?.*/;
 /** expression to catch the end of the webpack AMD file */
-const endBracketExpr = /.*\]\)\}\);;$/;
+const endBracketExpr = /\]\)\}\);;$/;
 /** this brackets will be inserted as a replacement for endBracketExpr */
 const endBracketString = "]);";
 /** This suffix will be appended to the name defined in libraryName */
@@ -43,7 +43,7 @@ DojoModuleWrapperPlugin.prototype.apply = function(compiler) {
                 if(toReplace && toReplace.length >= 2) {
                     for(let i = 1; i < toReplace.length; i++) {
                         if(source.indexOf(toReplace[i] === 0)) {
-                            source = source.replace(toReplace[i], "");
+                            source = source.replace(toReplace[i], '');
                             source = source.replace(endBracketExpr, endBracketString);
                         }
                     }
