@@ -89,7 +89,7 @@ DojoModuleWrapperPlugin.prototype.generateStartStatement = function(moduleName, 
          + '  return declare("' + moduleName.replace(/\//g, ".") + '", null, {  \n'
          + '    executeBundle: function() {\n'
          + windowDeps + '\n'
-         + '      script.get(' + baseUrl + ' + "' + moduleName + fileNameSuffix + '");  \n'
+         + '      return script.get(' + baseUrl + ' + "' + moduleName + fileNameSuffix + '");  \n'
          + '    }  \n'
          + '  });  \n'
          + '});  \n';
