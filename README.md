@@ -1,3 +1,44 @@
+# Deprecated - Do not use this project anymore!
+
+This package has been deprecated as it considered bad practice to do it like this. Use [dojo/request/script](https://dojotoolkit.org/reference-guide/1.10/dojo/request/script.html) instead!
+
+Example:
+
+```javascript
+define([
+   "dojo/_base/declare",
+   "dijit/_WidgetBase",
+   "dijit/_TemplatedMixin",
+   "dojo/text!com.mymodule/jazz/MyWidget.html",
+   "dojo/request/script"
+], function(declare, _WidgetBase, _TemplatedMixin, template, script) {
+   return declare("com.mymodule.jazz.MyWidget", [_WidgetBase, _TemplatedMixin], {
+
+      templateString: template,
+
+      startup: function() {
+         script.get(net.jazz.ajax._contextRoot + "/web/com.mymodule/ui/MyBundle.js");
+   });
+});
+```
+
+A reference implementation can be found [here](https://github.com/jazz-community/rtc-workitem-bulk-mover-ui)
+
+
+
+
+
+
+
+________________________________________________________________________________________
+
+
+
+
+
+
+
+
 [![npm-v-svg][npm-v-svg]][npm-url]
 [![npm-dt-svg][npm-dt-svg]][npm-url]
 [![issues-svg][issues-svg]][issues-url]
